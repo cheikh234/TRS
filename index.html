@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Transparence27 — Prototype navigable (1 fichier)</title>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
@@ -15,7 +15,7 @@
 @layer base{html,body{margin:0;padding:0;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}
 
 /* --- Barre de navigation du prototype (bas d'ecran) --- */
-.proto-jump { position: fixed; left: 0; right: 0; bottom: 0; z-index: 999999; background: #0D2E1F; border-top: 3px solid #C89D3C; font-family: "Public Sans", system-ui, sans-serif; }
+.proto-jump { position: fixed; left: 0; right: 0; bottom: 0; z-index: 999999; background: #0D2E1F; border-top: 3px solid #C89D3C; font-family: "Public Sans", system-ui, sans-serif; padding-bottom: env(safe-area-inset-bottom, 0px); }
 .proto-jump-row { max-width: 1360px; margin: 0 auto; display: flex; align-items: center; gap: 10px; padding: 10px 16px; flex-wrap: wrap; }
 .proto-jump a, .proto-jump button { color: #F8FAFC; text-decoration: none; font-family: inherit; border: none; cursor: pointer; }
 .proto-jump-home, .proto-jump-btn { background: rgba(255,255,255,.10); padding: 7px 12px; border-radius: 4px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
@@ -9600,6 +9600,21 @@ if (typeof window.tailwind !== "undefined" && window.tailwind) {
     onScroll();
   }
 
+  // Corrige le decalage de la barre du bas sur Safari iOS quand la barre
+  // d'adresse se reduit/s'affiche pendant le scroll (bug connu du viewport).
+  function initIOSBottomBarFix() {
+    var jumpBar = document.querySelector(".proto-jump");
+    if (!jumpBar || !window.visualViewport) return;
+    function reposition() {
+      var vv = window.visualViewport;
+      var offset = window.innerHeight - vv.height - vv.offsetTop;
+      jumpBar.style.transform = offset > 0 ? "translateY(-" + offset + "px)" : "translateY(0px)";
+    }
+    window.visualViewport.addEventListener("resize", reposition);
+    window.visualViewport.addEventListener("scroll", reposition);
+    reposition();
+  }
+
   function updateChrome(slug) {
     var entry = BY_SLUG[slug];
     // barre du bas
@@ -9633,6 +9648,7 @@ if (typeof window.tailwind !== "undefined" && window.tailwind) {
   document.addEventListener("DOMContentLoaded", function () {
     render();
     initHeaderScrollEffect();
+    initIOSBottomBarFix();
     updateBottomBarSpace();
   });
 
